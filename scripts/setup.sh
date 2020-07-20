@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Update Kubuntu and get standard repository programs
-./aptinstall.sh
+./scripts/aptinstall.sh
 
 # Run all programs/ install scripts
-for f in programs/*.sh; do bash "$f" -H; done
+#for f in programs/*.sh; do bash "$f" -H; done
 
 # Get all upgrades
 sudo apt upgrade -y
@@ -13,4 +13,4 @@ sudo apt upgrade -y
 source ~/.bashrc
 
 # Fun hello
-figlet "Hello!" | lolcat
+figlet "Hello, Brian!" | lolcat
