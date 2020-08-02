@@ -35,8 +35,9 @@ installFunStuff()
   install lolcat 
  echo "install feglet"
 
-  if command -v figlet > /dev/null; then $figletIn = 1; fi
-  figlet "figlet $figletIn" | lolcat
+  if type figlet; then 
+    figletIn=1
+  fi
 
 }
 
@@ -51,7 +52,7 @@ installHomeBrew()
         brew --version
     fi
 
-    if [ figletIn ]; then figlet "Homebrew Installed" | lolcat; fi
+    if [[ figletIn ]]; then figlet "Homebrew Installed" | lolcat; fi
 }
 
 installDependencies

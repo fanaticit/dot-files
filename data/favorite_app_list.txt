@@ -1,0 +1,1 @@
+['chrome-pkooggnaalmfkidjmlhoelhdllpphaga-Default.desktop', 'evolution.desktop', 'chrome-hcfcmgpnmpinpidjdgejehjchlbglpde-Default.desktop', 'teams.desktop', 'firefox.desktop', 'chromium_chromium.desktop', 'google-chrome.desktop', 'code_code.desktop', 'org.gnome.Nautilus.desktop', 'libreoffice-writer.desktop']

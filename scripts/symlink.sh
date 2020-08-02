@@ -29,6 +29,17 @@ function linkDotfile {
   ln -s ${dotfilesDir}/${1} ${dest}
 }
 
+function linkDesktopFile {
+  dest="${HOME}/Desktop/${1}"
+  dateStr=$(date +%Y-%m-%d-%H%M)
+
+  if [ -h ~/${1} ]; then
+    # Existing desktop link
+    echo "Removing existing desktop link: $dest"
+    rm $dest
+  fi
+}
+
 # linkDotfile .vimrc
 # linkDotfile .tmux.conf
 linkDotfile .bashrc
@@ -36,3 +47,4 @@ linkDotfile .bashrc
 # linkDotfile .gitconfig
 # linkDotfile .gitmessage
 # linkDotfile .git-completion.bash
+
