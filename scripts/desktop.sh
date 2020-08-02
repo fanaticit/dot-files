@@ -25,3 +25,7 @@ gsettings set org.gnome.shell favorite-apps "$value"
 
 # Return user to working directory
 cd $Initial_DIR
+
+
+# To read the current favorites
+#gsettings get org.gnome.shell favorite-apps
