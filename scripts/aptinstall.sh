@@ -15,6 +15,17 @@ function install {
   fi
 }
 
+function snapinstall {
+  which $1 &> /dev/null
+
+  if [ $? -ne 0 ]; then
+    echo "Snapping In: ${1}..."
+    sudo snap install $1
+  else
+    echo "Already installed: ${1}"
+  fi
+}
+
 installDependencies()
 {
     # Essential development and OS tools
@@ -76,4 +87,4 @@ installHomeBrew
 # install optipng
 
 # Needed
-install starship
+snapinstall starship
