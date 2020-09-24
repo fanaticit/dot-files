@@ -27,6 +27,7 @@ installDependencies()
     if [ $(which pip3 | grep 'bin' | wc -l) -ne 0 ]; then pip3 --version; fi
     if [ $(which zip | grep 'bin' | wc -l) -ne 0 ]; then zip -v | head -n 2 | tail -n 1; fi
     if [ $(which unzip | grep 'bin' | wc -l) -ne 0 ]; then unzip | head -n 1; fi
+
 }
 
 installFunStuff()
@@ -62,10 +63,7 @@ installHomeBrew
 # Basics
 # install awscli
 # install chromium-browser
-# install curl
 # install exfat-utils
-# install file
-# install git
 # install htop
 # install nmap
 # install openvpn
@@ -73,10 +71,9 @@ installHomeBrew
 # install vim
 
 # Image processing
-# install gimp
+ install gimp
 # install jpegoptim
 # install optipng
 
-# Fun stuff
-# install figlet
-# install lolcat
+# Needed
+install starship
