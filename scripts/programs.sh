@@ -6,16 +6,19 @@ Initial_DIR=$(pwd)
 cd "$(dirname "$0")"
 cd programs/
 
-# ./docker.sh
+
  ./firefox.sh
  ./python.sh
+ ./sublime-text.sh
+ ./java.sh
+ ./calibre.sh
+ ./gitkraken.sh
+ ./vscode.sh
+
+# ./docker.sh
 # ./vsc.sh
 # ./vundle.sh
 # ./sass.sh
- ./java.sh
-
-./sublime-text.sh
-
 
 # Return user to working directory
 cd $Initial_DIR
