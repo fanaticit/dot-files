@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if ! which python
+if ! which python3
 then
     echo "🐍 Installing Python"
     sudo apt install -y python3-venv python3-pip
