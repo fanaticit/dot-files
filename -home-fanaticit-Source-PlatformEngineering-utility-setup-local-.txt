@@ -1,0 +1,329 @@
+#!/bin/bash
+# Installs various useful tools to get you up and running
+
+TICK="\e[32m✔\e[0m"
+CROSS="\e[31m✘\e[0m"
+WARNING="\e[33m‼\e[0m"
+
+installDependencies()
+{
+    # Make sure the OS is up to date
+    sudo apt update && sudo apt upgrade -y
+    # Essential development and OS tools
+    sudo apt-get -y install build-essential curl file git jq python3-pip zip unzip
+
+    if [ $(which curl | grep 'bin' | wc -l) -ne 0 ]; then curl --version | head -n 1; fi
+    if [ $(which file | grep 'bin' | wc -l) -ne 0 ]; then file --version | head -n 1; fi
+    if [ $(which git | grep 'bin' | wc -l) -ne 0 ]; then git --version; fi
+    if [ $(which jq | grep 'bin' | wc -l) -ne 0 ]; then jq --version; fi
+    if [ $(which pip3 | grep 'bin' | wc -l) -ne 0 ]; then pip3 --version; fi
+    if [ $(which zip | grep 'bin' | wc -l) -ne 0 ]; then zip -v | head -n 2 | tail -n 1; fi
+    if [ $(which unzip | grep 'bin' | wc -l) -ne 0 ]; then unzip | head -n 1; fi
+}
+
+installHomeBrew()
+{
+    # Installs homebrew package manager
+    if [ $(brew config 2>/dev/null | grep HOMEBREW_VERSION | wc -l) -eq 0 ]; then
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"
+        export PATH=$PATH:/home/linuxbrew/.linuxbrew/bin
+    else
+        echo -e "$TICK homebrew already installed"
+        brew --version
+    fi
+}
+
+installNodejs()
+{
+    if [ $(which npm | grep bin | wc -l) -eq 0 ]; then
+        curl -sL https://deb.nodesource.com/setup_13.x | sudo -E bash -
+        sudo apt-get install -y nodejs
+        #set this user as the owner of the node_modules folder so we can install modules into it
+        sudo chown -R "$(whoami):$(whoami)" /usr/local/lib/node_modules
+    else
+        echo -e "$TICK nodejs already installed"
+        npm --version
+    fi
+}
+
+setUserPermissionsOnBrew() 
+{
+    sudo chown -R "$(whoami):$(whoami)" /usr/local && sudo chmod -R g+rwx /usr/local
+}
+
+configureLocalBashProfile()
+{
+    #echo "export PS1=\[\033[36m\]\u\[\033[m\]@\[\033[32m\]\h:\[\033[33;1m\]\w\[\033[m\]\$" >> ~/.bash_profile_test
+    #echo "export CLICOLOR=1" >> ~/.bash_profile_test
+    #echo "export LSCOLORS=ExFxBxDxCxegedabagacad" >> ~/.bash_profile_test
+    #echo "alias ls='ls -laFGh'" >> ~/.bash_profile_test
+
+    if [ $(cat ~/.bashrc | grep 'export LC_ALL' | wc -l) -eq 0 ]; then
+        echo 'export PYTHONWARNINGS="ignore:Unverified HTTPS request"' >> ~/.bashrc
+        echo 'alias ls="ls -alhF --color --group-directories-first"' >> ~/.bashrc
+        echo 'export LC_ALL="C"' >> ~/.bashrc
+        echo 'export PATH="$PATH:/home/linuxbrew/.linuxbrew/bin"'  >> ~/.bashrc
+        echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
+        echo 'export PATH="$PATH:/home/$(whoami)/.local/bin"' >> ~/.bashrc 
+        echo 'bind "set completion-ignore-case on"' >> ~/.bashrc
+        echo 'bind "set show-all-if-ambiguous on"' >> ~/.bashrc
+    else
+        echo -e "$TICK ~/.bashrc already configured"
+    fi
+}
+
+configureGitEnvironment()
+{
+    if [ $(git config --global user.email | wc -l) -eq 0 ]; then
+        echo "Configuring default git credentials..."
+        read -p " Enter your full name (i.e. Joe Smith): " GIT_USERNAME
+        read -p " Enter your email address (i.e. joe.smith@domain.com): " GIT_EMAIL
+        echo "--"
+        echo "user.name  : $GIT_USERNAME"
+        echo "user.email : $GIT_EMAIL"
+        read -p "Is this correct? (Y/N): " confirm && [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]] || exit
+
+        git config --global user.name "$GIT_USERNAME"
+        git config --global user.email "$GIT_EMAIL"
+    else
+        echo -e "$TICK git default username and email already configured"
+    fi
+}
+
+installGitCredentialManager() {
+    echo "Automates the password and username entry for azure devops"
+    brew install git-credential-manager
+    git-credential-manager install
+    git config --global --set credential.helper "!/Library/Java/JavaVirtualMachines/jdk1.8.0_131.jdk/Contents/Home/jre/bin/java -Ddebug=false -Djava.net.useSystemProxies=true -jar /usr/local/Cellar/git-credential-manager/2.0.4/libexec/git-credential-manager-2.0.4.jar"
+}
+
+installsfctl() {
+    if [ $(which sfctl | grep 'bin' | wc -l) -eq 0 ]; then
+        sfctl | grep 'Service Fabric' | wc -l
+        $PIP install sfctl
+    else
+        echo -e "$TICK sfctl already installed"
+        sfctl --version | head -n 1
+    fi
+}
+
+installAzureCLIWithExtensions()
+{
+    if [ $(az --version 2>/dev/null | grep 'azure-cli' | wc -l) -eq 0 ]; then
+        brew install azure-cli
+
+        # Add the Azure Graph Extension
+        az extension add --name resource-graph
+
+        # Add the Azure DevOps Extension
+        # https://github.com/Microsoft/azure-devops-cli-extension
+        az extension add --name azure-devops
+        az extension list
+    else
+        echo -e "$TICK azure-cli already installed"
+        az --version | head -n 1
+    fi
+}
+
+installMsSQLTools() 
+{
+    if [ $(sqlcmd 2>/dev/null | grep 'SQL Server Command Line Tool' | wc -l) -eq 0 ]; then
+        #/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+        #brew update
+        #brew tap microsoft/mssql-release https://github.com/Microsoft/homebrew-mssql-release
+        #brew install msodbcsql mssql-tools
+
+        curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+        curl https://packages.microsoft.com/config/ubuntu/16.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
+        sudo apt-get update 
+        wget http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/multiarch-support_2.27-3ubuntu1_amd64.deb
+        sudo dpkg -i ./multiarch-support_2.27-3ubuntu1_amd64.deb
+        sudo ACCEPT_EULA=Y  apt install libodbc1 odbcinst1debian2 unixodbc mssql-tools unixodbc-dev -y
+    else
+        echo -e "$TICK mssql-tools already installed"
+        sqlcmd | head -n 2
+    fi
+}
+    
+installAzureDataStorageExplorer() 
+{
+    echo "You'll need to install this to query around in the persistent data model."
+    echo "https://azure.microsoft.com/en-us/features/storage-explorer/"
+}
+
+installTerraform() 
+{
+    # Infrastructure as code management tool
+    if [ $(brew list 2>/dev/null | grep terraform | wc -l) -eq 0 ]; then
+        brew install terraform
+    else
+        echo -e "$TICK terraform already installed"
+        terraform --version
+    fi
+}
+
+installTerragrunt()
+{
+    # Terraform wrapper that provides extra tools for keeping configurations DRY, working with multiple Terraform modules, and managing remote state
+    if [ $(brew list 2>/dev/null | grep terragrunt | wc -l) -eq 0 ]; then
+        brew install terragrunt
+    else
+        echo -e "$TICK terragrunt already installed"
+        terragrunt --version
+    fi
+}
+
+installMermaidForDiagrams()
+{
+    #sudo mkdir -p /usr/local/lib/node_modules/mermaid.cli/node_modules/puppeteer/
+
+    # For basic high-level diagrams of designs
+    if [ $(npm list -g 2>/dev/null | grep mermaid | wc -l) -eq 0 ]; then
+        npm install -g mermaid.cli
+    else
+        echo -e "$TICK mermaid already installed"
+        mmdc --version
+    fi
+}
+
+installNewManForPostMan() 
+{
+    # To use Postman to make collections of web requests test runnable
+    if [ $(npm list -g 2>/dev/null | grep newman | wc -l) -eq 0 ]; then
+        sudo npm install -g newman
+    else
+        echo -e "$TICK newman already installed"
+        newman --version
+    fi
+}
+
+installPowershell()
+{
+    if [ $(pwsh --version 2>/dev/null | grep 'PowerShell' | wc -l) -eq 0 ]; then
+        wget -q https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb
+        sudo dpkg -i packages-microsoft-prod.deb
+        sudo apt-get update
+        sudo add-apt-repository universe
+        sudo apt-get install -y powershell
+    else
+        echo -e "$TICK powershell already installed"
+        pwsh --version
+    fi  
+}
+
+installPowershellModules()
+{
+    # Make the Microsoft PSGallery a trusted repository
+    pwsh -NoLogo -NonInteractive -Command Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
+    
+    if [ $(pwsh -NoLogo -NonInteractive -OutputFormat Text -Command Get-InstalledModule az 2>/dev/null | grep 'PSGallery' | wc -l) -eq 0 ]; then
+        pwsh -Command Install-Module Az -Force
+    else
+        echo -e "$TICK az module already installed"
+        pwsh -NoLogo -NonInteractive -Command Get-InstalledModule az 2>/dev/null | tail -n 2 | head -n 1
+    fi
+
+    if [ $(pwsh -NoLogo -NonInteractive -OutputFormat Text -Command Get-InstalledModule dbatools 2>/dev/null | grep 'PSGallery' | wc -l) -eq 0 ]; then
+        pwsh -Command Install-Module dbatools -Force
+    else
+        echo -e "$TICK dbatools module already installed"
+        pwsh -NoLogo -NonInteractive -Command Get-InstalledModule dbatools 2>/dev/null | tail -n 2 | head -n 1
+    fi
+
+    # Enable the older powershell aliases, many scripts still use them.
+    pwsh -NoLogo -NonInteractive -Command Enable-AzureRmAlias
+}
+
+installPythonFuture()
+{
+    if [ $($PIP list | grep ^future | wc -l) -eq 0 ]; then
+        $PIP install future
+    else
+        echo -e "$TICK python future already installed"
+    fi
+}
+
+installAWSCLI()
+{
+    if [ $(which aws2 | grep 'bin' | wc -l) -eq 0 ]; then
+        curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip awscliv2.zip
+        sudo ./aws/install
+        rm awscliv2.zip
+        sudo rm -rf ./aws
+    else
+        echo -e "$TICK AWS CLI already installed"
+        aws2 --version
+    fi
+}
+
+installJava()
+{
+    if [ $(java --version 2>/dev/null | grep -i 'jdk' | wc -l) -eq 0 ]; then
+        sudo apt install openjdk-14-jre
+    else
+        echo -e "$TICK JAVA JRE already installed"
+        java --version | head -n 2 | tail -n 1
+    fi
+}
+
+installJMeter()
+{
+    if [ $(brew list 2>/dev/null | grep -i 'jmeter' | wc -l) -eq 0 ]; then
+        brew install jmeter
+    else
+        echo -e "$TICK JMeter already installed"
+        jmeter --version
+    fi
+}
+
+# Permission to proceed
+echo "This script will install our standard toolchain and configure bash"
+echo "=================================================================="
+read -p "Are you sure you want to continue? (Y/N): " confirm && [[ $confirm == [yY] || $confirm == [yY][eE][sS] ]] || exit 1
+
+# Let's get started
+echo "Ok, here we go... 🙈"
+
+# Set python version to use
+if [ $(pip3 --version 2>/dev/null | grep 'python 3.' | wc -l) -eq 1 ]; then
+    PIP="pip3"
+    PYTHON="python3"
+else
+    PIP="pip"
+    PYTHON="python"
+fi
+
+# --------------------------------------------------------------------------
+
+installDependencies
+configureLocalBashProfile
+installHomeBrew
+installNodejs
+configureGitEnvironment
+installAzureCLIWithExtensions
+installPowershell
+installPowershellModules
+installAWSCLI
+installMermaidForDiagrams
+installNewManForPostMan
+installMsSQLTools
+installTerraform
+installTerragrunt
+installPythonFuture
+#installJava
+installJMeter
+
+echo "==================================================================="
+echo " Test the following commands to make sure they are installed:"
+echo "  - sqlcmd (if this does not work, go rerun the install steps one at a time)"
+echo "  - pwsh (if this does not work, go rerun the install steps)"
+echo " Open Powershell, run connect-azaccount and authenticate with your admin account  "
+#test
+if [ $(which sqlcmd | wc -l) -eq 0 ]; then
+    echo "ERROR: sqlcmd failed to install correctly"
+else
+    echo "sqlcmd installed ok"
+fi
+echo "All done! 🤩"
+source ~/.bashrc

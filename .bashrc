@@ -133,6 +133,7 @@ alias tfplan='./scripts/plan.sh'
 alias tfrefresh='./scripts/refresh.sh'
 alias tfset='source ./scripts/setup.sh'
 alias tfauth='source ./scripts/auth.sh'
+alias tfimport='source ./scripts/import.sh'
 
 eval "$(starship init bash)"
 

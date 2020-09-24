@@ -66,3 +66,4 @@ linkDotfile .bashrc
 linkDesktopFile "chrome-Outlook-Default.desktop"
 linkDesktopFile "chrome-GoogleKeep-Default.desktop"
 linkDesktopFile "chrome-OneNote-OpenMoney-Default.desktop"
+linkDesktopFile "sublime_text_shortcut.desktop"
